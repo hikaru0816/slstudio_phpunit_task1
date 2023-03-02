@@ -40,6 +40,8 @@ class ItemsControllerTest extends TestCase
 
         // ファクトリークラスを使用し商品情報の生成
         /* $this->item = ファクトリクラスを使用した生成処理 */
+        $this->item = factory(Item::class)->make();
+        // $this->item = Item::factory()->make();
     }
 
     /**
@@ -53,12 +55,14 @@ class ItemsControllerTest extends TestCase
             $mock->shouldReceive('fetchForAdmin')->once()->andReturn(new LengthAwarePaginator(null, 1, 1, null));
         });
         // 期待値の設定
-
+        $expectedData = ['items' => new LengthAwarePaginator(null, 1, 1, null)];
         // 認証済ユーザーの指定とhttpメソッドとパスの指定し、実行
         $response = $this->actingAs($this->adminUser, config('admin.auth.guard'))
             ->get(route('admin.items.index'));
         // 検証
-
+        $response->assertOk()
+            ->assertViewIs('admin.items.index')
+            ->assertViewHasAll($expectedData);
     }
 
     /**
@@ -66,19 +70,31 @@ class ItemsControllerTest extends TestCase
      */
     public function test_商品詳細画面の検証()
     {
-
+        $this->mock(Item::class, function ($mock) {
+            // コントローラ内で利用しているメソッドのモックを作成
+            $mock->shouldReceive('findById')->once()->andReturn($this->item);
+        });
+        $expectedData = ['item' => $this->item];
+        $response = $this->actingAs($this->adminUser, config('admin.auth.guard'))
+            ->get(route('admin.items.detail', ['id' => $this->item->id]));
+        $response->assertOk()
+            ->assertViewIs('admin.items.detail')
+            ->assertViewHasAll($expectedData);
     }
 
 
     /**
      * 商品新規登録画面を正しく表示できた場合のテスト
-     * 
+     *
      * 静的メソッド（Brand::all()など）のモック化は難易度が高いため不要
      * 新規登録画面に遷移できることをテストする
      */
     public function test_商品新規登録画面の検証()
     {
-
+        $response = $this->actingAs($this->adminUser, config('admin.auth.guard'))
+            ->get(route('admin.items.createView'));
+        $response->assertOk()
+            ->assertViewIs('admin.items.create');
     }
 
     /**
@@ -87,7 +103,9 @@ class ItemsControllerTest extends TestCase
     public function test_商品新規登録処理の検証()
     {
         // スタブの設定
-
+        $this->mock(Item::class, function ($mock) {
+            $mock->shouldReceive('create')->once()->andReturn($this->item);
+        });
         // 認証済ユーザーの指定とhttpメソッドとパスの指定し、実行
         $response = $this->actingAs($this->adminUser, config('admin.auth.guard'))
             ->post(route('admin.items.create'), [
@@ -100,18 +118,28 @@ class ItemsControllerTest extends TestCase
             ]);
 
         // 検証
-
+        $response->assertRedirect(route('admin.items.detail', ['id' => $this->item->id]));
     }
 
     /**
      * 商品編集画面を正しく表示できた場合のテスト
-     * 
+     *
      * 静的メソッド（Brand::all()など）のモック化は難易度が高いため不要
      * 商品情報をもった状態で、編集画面に遷移できることをテストする
      */
     public function test_商品編集画面の検証()
     {
-
+        $this->mock(Item::class, function($mock){
+            $mock->shouldReceive('findById')->once()->andReturn($this->item);
+        });
+        $expectedData = [
+            'item' => $this->item,
+        ];
+        $response = $this->actingAs($this->adminUser, config('admin.auth.guard'))
+            ->get(route('admin.items.editView', ['id' => $this->item->id]));
+        $response->assertOk()
+            ->assertViewHasAll($expectedData)
+            ->assertViewIs('admin.items.edit');
     }
 
     /**
@@ -119,7 +147,18 @@ class ItemsControllerTest extends TestCase
      */
     public function test_商品更新処理の検証()
     {
-
+        $this->mock(Item::class, function($mock){
+            $mock->shouldReceive('edit')->once()->andReturn($this->item);
+        });
+        $response = $this->actingAs($this->adminUser, config('admin.auth.guard'))
+            ->post(route('admin.items.edit', ['id' => $this->item->id]), [
+                'name' => 'dummy',
+                'description' => 'dummy',
+                'price' => 1,
+                'crandId' => 1,
+                'categoryId' => 1,
+            ]);
+        $response->assertRedirect(route('admin.items.detail', ['id' => $this->item->id]));
     }
 
     /**
@@ -127,6 +166,11 @@ class ItemsControllerTest extends TestCase
      */
     public function test_商品削除処理の検証()
     {
-
+        $this->mock(Item::class, function($mock){
+            $mock->shouldReceive('deleteById')->once()->andReturn($this->item);
+        });
+        $response = $this->actingAs($this->adminUser, config('admin.auth.guard'))
+            ->delete(route('admin.items.delete', ['id' => $this->item->id]));
+        $response->assertRedirect(route('admin.items.index'));
     }
 }

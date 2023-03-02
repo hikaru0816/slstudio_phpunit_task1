@@ -16,7 +16,7 @@ use Tests\TestCase;
  */
 class ItemTest extends TestCase
 {
-
+    // テスト用データのリフレッシュ指示
     use RefreshDatabase;
 
     // テスト対象
@@ -24,7 +24,11 @@ class ItemTest extends TestCase
 
     public function setUp(): void
     {
-
+        parent::setUp();
+        // テスト用のデータを登録
+        $this->seed(ItemsSeeder::class);
+        // インスタンス作成
+        $this->target = new Item();
     }
 
     /**
@@ -34,7 +38,11 @@ class ItemTest extends TestCase
      */
     public function test_商品名が重複していない場合trueを返すこと()
     {
-
+        $item = new Item([
+            'name' => 'てすと',
+        ]);
+        $actual = $this->target->checkUnique($item);
+        $this->assertTrue($actual);
     }
 
     /**
@@ -44,7 +52,11 @@ class ItemTest extends TestCase
      */
     public function test_商品名が重複する場合falseを返すこと()
     {
-
+        $item = new Item([
+            'name' => '商品A',
+        ]);
+        $actual = $this->target->checkUnique($item);
+        $this->assertFalse($actual);
     }
 
     /**
@@ -54,7 +66,8 @@ class ItemTest extends TestCase
      */
     public function test_商品情報が存在しない場合例外が発生すること()
     {
-
+        $this->expectException(NotFoundException::class);
+        $this->target->findById(0);
     }
 
     /**
@@ -64,6 +77,18 @@ class ItemTest extends TestCase
      */
     public function test_商品情報の取得処理の検証()
     {
-
+        $item = new Item();
+        $item->id = 1;
+        $item->name = '商品A';
+        $item->description = '商品の説明';
+        $item->price = 200000;
+        $item->brand_id = 1;
+        $item->category_id = 1;
+        $item->created_at = '2022-07-01 10:00:00';
+        $item->updated_at = '2022-07-01 10:00:00';
+        $item->deleted_at = null;
+        $expected = $item->toArray();
+        $actual = $this->target->findById(1)->toArray();
+        $this->assertEquals($expected, $actual);
     }
 }

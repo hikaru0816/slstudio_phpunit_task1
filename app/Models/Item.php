@@ -117,6 +117,7 @@ class Item extends Model
      */
     public function findById($id)
     {
+        // 指定idが無ければ例外処理
         if (!$this->exists($id)) {
             throw new NotFoundException($id, $this->getTable());
         }
@@ -201,6 +202,7 @@ class Item extends Model
      */
     public function deleteById($id)
     {
+        // 指定idが無ければ例外処理
         if (!$this->exists($id)) {
             throw new NotFoundException($id, $this->getTable());
         }
@@ -218,6 +220,7 @@ class Item extends Model
      */
     public function exists($id)
     {
+        // 指定idの商品が無ければfalse
         if (Item::whereId($id)->count() == 0) {
             return false;
         }
@@ -232,14 +235,19 @@ class Item extends Model
      */
     public function checkUnique($item)
     {
+        // 商品idがnull又は0だったらtrue
         $isCreatingNew = ($item->id == null || $item->id == 0);
+        // 商品名が一致するものを取得
         $itemByName = Item::whereName($item->name)->get();
+
         if ($isCreatingNew) {
             if ($itemByName->isNotEmpty()) {
+                // 商品idが無くて、商品名が同じものがある場合
                 return false;
             }
         } else {
             if ($itemByName->isNotEmpty() && $itemByName->id != $item->id) {
+                // 商品idがあって、かつ、商品名が同じものがある、かつ、同じ商品名のidと引数の商品のidが同じでない場合
                 return false;
             }
         }

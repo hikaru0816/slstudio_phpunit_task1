@@ -22,7 +22,16 @@ class CategoryRequestTest extends TestCase
      */
     public function test_カテゴリー名が1文字の場合trueを返すこと()
     {
+        $data = [
+            'name' => 'a',
+        ];
+        $request = new CategoryRequest();
+        $rules = $request->rules();
 
+        $validator = Validator::make($data, $rules);
+        $actual = $validator->passes();
+        $expectd = true;
+        $this->assertSame($expectd, $actual);
     }
 
     /**
@@ -32,7 +41,16 @@ class CategoryRequestTest extends TestCase
      */
     public function test_カテゴリー名が20文字の場合trueを返すこと()
     {
+        $data = [
+            'name' => 'aaaaaaaaaaaaaaaaaaaa',
+        ];
+        $request = new CategoryRequest();
+        $rules = $request->rules();
 
+        $validator = Validator::make($data, $rules);
+        $actual = $validator->passes();
+        $expectd = true;
+        $this->assertSame($expectd, $actual);
     }
 
     /**
@@ -42,7 +60,16 @@ class CategoryRequestTest extends TestCase
      */
     public function test_カテゴリー名が0文字の場合falseを返すこと()
     {
+        $data = [
+            'name' => '',
+        ];
+        $request = new CategoryRequest();
+        $rules = $request->rules();
 
+        $validator = Validator::make($data, $rules);
+        $actual = $validator->passes();
+        $expectd = false;
+        $this->assertSame($expectd, $actual);
     }
 
     /**
@@ -52,6 +79,15 @@ class CategoryRequestTest extends TestCase
      */
     public function test_カテゴリー名が21文字の場合falseを返すこと()
     {
+        $data = [
+            'name' => 'aaaaaaaaaaaaaaaaaaaaa',
+        ];
+        $request = new CategoryRequest();
+        $rules = $request->rules();
 
+        $validator = Validator::make($data, $rules);
+        $actual = $validator->passes();
+        $expectd = false;
+        $this->assertSame($expectd, $actual);
     }
 }

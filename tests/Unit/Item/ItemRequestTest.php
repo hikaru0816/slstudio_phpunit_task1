@@ -19,12 +19,16 @@ class ItemRequestTest extends TestCase
      * 概要 商品名・商品説明のパラメーター化テスト
      * 条件 データプロバイダメソッドのラベル
      * 結果 条件に応じた結果(true, false)を返すこと
-     * 
+     *
      * @dataProvider validationDataProvider
      */
-    public function test_パラメーター化テスト()
+    public function test_パラメーター化テスト($param, $expected)
     {
-   
+        $request = new ItemRequest();
+        $rules = $request->rules();
+        $validator = Validator::make($param, $rules);
+        $actual = $validator->passes();
+        $this->assertSame($expected, $actual);
     }
     // データプロバイダメソッド
     public function validationDataProvider(): array
@@ -33,31 +37,35 @@ class ItemRequestTest extends TestCase
         return [
             '商品名が1文字かつ商品説明が1文字の場合' => [
                 [
-                    'name' => '',
-                    'description' => '',
+                    'name' => 'a',
+                    'description' => 'a',
                 ],
                 /* 期待値 */
+                true
             ],
             '商品名が10文字かつ商品説明が50文字の場合' => [
                 [
-                    'name' => '',
-                    'description' => '',
+                    'name' => 'aaaaaaaaaa',
+                    'description' => 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
                 ],
                 /* 期待値 */
+                true
             ],
             '商品名が10文字かつ商品説明が1文字の場合' => [
                 [
-                    'name' => '',
-                    'description' => '',
+                    'name' => 'aaaaaaaaaa',
+                    'description' => 'a',
                 ],
                 /* 期待値 */
+                true
             ],
             '商品名が1文字かつ商品説明が50文字の場合' => [
                 [
-                    'name' => '',
-                    'description' => '',
+                    'name' => 'a',
+                    'description' => 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
                 ],
                 /* 期待値 */
+                true
             ],
             '商品名が0文字かつ商品説明が0文字の場合' => [
                 [
@@ -65,41 +73,47 @@ class ItemRequestTest extends TestCase
                     'description' => '',
                 ],
                 /* 期待値 */
+                false
             ],
             '商品名が11文字かつ商品説明が51文字の場合' => [
                 [
-                    'name' => '',
-                    'description' => '',
+                    'name' => 'aaaaaaaaaaa',
+                    'description' => 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
                 ],
                 /* 期待値 */
+                false
             ],
             '商品名が10文字かつ商品説明が0文字の場合' => [
                 [
-                    'name' => '',
+                    'name' => 'aaaaaaaaaa',
                     'description' => '',
                 ],
                 /* 期待値 */
+                false
             ],
             '商品名が0文字かつ商品説明が50文字の場合' => [
                 [
                     'name' => '',
-                    'description' => '',
+                    'description' => 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
                 ],
                 /* 期待値 */
+                false
             ],
             '商品名が10文字かつ商品説明が51文字の場合' => [
                 [
-                    'name' => '',
-                    'description' => '',
+                    'name' => 'aaaaaaaaaa',
+                    'description' => 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
                 ],
                 /* 期待値 */
+                false
             ],
             '商品名が11文字かつ商品説明が50文字の場合' => [
                 [
-                    'name' => '',
-                    'description' => '',
+                    'name' => 'aaaaaaaaaaa',
+                    'description' => 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
                 ],
                 /* 期待値 */
+                false
             ],
         ];
     }

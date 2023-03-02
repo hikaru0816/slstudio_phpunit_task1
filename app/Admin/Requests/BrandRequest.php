@@ -36,7 +36,7 @@ class BrandRequest extends FormRequest
 
     /**
      * バリデーション項目名定義
-     * 
+     *
      * @return array
      */
     public function attributes()

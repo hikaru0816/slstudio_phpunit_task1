@@ -43,7 +43,9 @@ class AdminUsersControllerTest extends TestCase
 
         // ファクトリークラスを使用し役割・権限情報の生成（それぞれ配列であること）
         /* $this->roles = [ファクトリクラスを使用した生成処理]; */
+        $this->roles = [factory(AdminRole::class)->make()];
         /* $this->permissions = [ファクトリクラスを使用した生成処理]; */
+        $this->permissions = [factory(AdminPermission::class)->make()];
     }
 
     /**
@@ -54,13 +56,24 @@ class AdminUsersControllerTest extends TestCase
     public function test_管理者一覧表示画面の検証()
     {
         // スタブの設定
-
+        $this->mock(AdminUser::class, function($mock){
+            $mock->shouldReceive('getAllRoles')->once()->andReturn($this->roles);
+            $mock->shouldReceive('getAllPermissions')->once()->andReturn($this->permissions);
+            $mock->shouldReceive('search')->once()->andReturn(new LengthAwarePaginator(null, 1, 1, null));
+        });
         // 期待値の設定
-
+        $expectedData = [
+            'adminUsers' => new LengthAwarePaginator(null, 1, 1, null),
+            'roles' => $this->roles,
+            'permissions' => $this->permissions,
+        ];
         // 認証済ユーザーの指定とhttpメソッドとパスの指定し、実行
-
+        $response = $this->actingAs($this->adminUser, config('admin.auth.guard'))
+            ->get(route('admin.adminUsers.index'));
         // 検証
-
+        $response->assertOk()
+            ->assertViewHasAll($expectedData)
+            ->assertViewIs('admin.admin-users.index');
     }
 
     /**
@@ -68,7 +81,17 @@ class AdminUsersControllerTest extends TestCase
      */
     public function test_管理者詳細画面の検証()
     {
-
+        $this->mock(AdminUser::class, function($mock){
+            $mock->shouldReceive('findById')->once()->andReturn($this->adminUser);
+        });
+        $expectedData = [
+            'adminUser' => $this->adminUser,
+        ];
+        $response = $this->actingAs($this->adminUser, config('admin.auth.guard'))
+            ->get(route('admin.adminUsers.detail', ['id' => $this->adminUser->id]));
+        $response->assertOk()
+            ->assertViewHasAll($expectedData)
+            ->assertViewIs('admin.admin-users.detail');
     }
 
 
@@ -77,7 +100,19 @@ class AdminUsersControllerTest extends TestCase
      */
     public function test_管理者新規登録画面の検証()
     {
-
+        $this->mock(AdminUser::class, function($mock){
+            $mock->shouldReceive('getAllRoles')->once()->andReturn($this->roles);
+            $mock->shouldReceive('getAllPermissions')->once()->andReturn($this->permissions);
+        });
+        $expectedData = [
+            'roles' => $this->roles,
+            'permissions' => $this->permissions,
+        ];
+        $response = $this->actingAs($this->adminUser, config('admin.auth.guard'))
+            ->get(route('admin.adminUsers.createView'));
+        $response->assertOk()
+            ->assertViewHasAll($expectedData)
+            ->assertViewIs('admin.admin-users.create');
     }
 
     /**
@@ -85,7 +120,9 @@ class AdminUsersControllerTest extends TestCase
      */
     public function test_管理者新規登録処理の検証()
     {
-
+        $this->mock(AdminUser::class, function($mock){
+            $mock->shouldReceive('createAdminUser')->once()->andReturn($this->adminUser);
+        });
         // 認証済ユーザーの指定とhttpメソッドとパスの指定し、実行
         $response = $this->actingAs($this->adminUser, config('admin.auth.guard'))
             ->post(route('admin.adminUsers.create'), [
@@ -97,6 +134,7 @@ class AdminUsersControllerTest extends TestCase
                 'adminUserRoles' => [1],
                 'adminUserPermissions' => [1],
             ]);
+        $response->assertRedirect(route('admin.adminUsers.detail', ['id' => $this->adminUser->id]));
     }
 
     /**
@@ -104,7 +142,21 @@ class AdminUsersControllerTest extends TestCase
      */
     public function test_管理者編集画面の検証()
     {
-
+        $this->mock(AdminUser::class, function($mock){
+            $mock->shouldReceive('getAllRoles')->once()->andReturn($this->roles);
+            $mock->shouldReceive('getAllPermissions')->once()->andReturn($this->permissions);
+            $mock->shouldReceive('findById')->once()->andReturn($this->adminUser);
+        });
+        $expectedData = [
+            'adminUser' => $this->adminUser,
+            'roles' => $this->roles,
+            'permissions' => $this->permissions,
+        ];
+        $response = $this->actingAs($this->adminUser, config('admin.auth.guard'))
+            ->get(route('admin.adminUsers.editView', ['id' => $this->adminUser->id]));
+        $response->assertOk()
+            ->assertViewHasAll($expectedData)
+            ->assertViewIs('admin.admin-users.edit');
     }
 
     /**
@@ -112,7 +164,18 @@ class AdminUsersControllerTest extends TestCase
      */
     public function test_管理者更新処理の検証()
     {
-
+        $this->mock(AdminUser::class, function($mock){
+            $mock->shouldReceive('edit')->once()->andReturn($this->adminUser);
+        });
+        $response = $this->actingAs($this->adminUser, config('admin.auth.guard'))
+            ->post(route('admin.adminUsers.edit', [
+                'id' => $this->adminUser->id,
+                'userId' => 0,
+                'userName' => 'dummy',
+                'adminUserRoles' => 'dummy',
+                'useradminUserPermissionsId' => 'dummy',
+            ]));
+        $response->assertRedirect(route('admin.adminUsers.detail', ['id' => $this->adminUser->id]));
     }
 
     /**
@@ -120,6 +183,11 @@ class AdminUsersControllerTest extends TestCase
      */
     public function test_管理者削除処理の検証()
     {
-
+        $this->mock(AdminUser::class, function($mock){
+            $mock->shouldReceive('deleteById')->once()->andReturn($this->adminUser);
+        });
+        $response = $this->actingAs($this->adminUser, config('admin.auth.guard'))
+            ->delete(route('admin.adminUsers.delete', ['id' => $this->adminUser]));
+        $response->assertRedirect(route('admin.adminUsers.index'));
     }
 }

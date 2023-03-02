@@ -24,7 +24,9 @@ class AdminUserTest extends TestCase
 
     public function setUp(): void
     {
-
+        parent::setUp();
+        $this->seed(AdminTablesSeeder::class);
+        $this->target = new AdminUser();
     }
 
     /**
@@ -34,7 +36,10 @@ class AdminUserTest extends TestCase
      */
     public function test_管理者名が重複していない場合trueを返すこと()
     {
-
+        $adminUser = new AdminUser();
+        $adminUser->username = "てすと";
+        $actual = $this->target->checkUnique($adminUser);
+        $this->assertTrue($actual);
     }
 
     /**
@@ -44,7 +49,10 @@ class AdminUserTest extends TestCase
      */
     public function test_管理者名が重複する場合falseを返すこと()
     {
-
+        $adminUser = new AdminUser();
+        $adminUser->username = "admin@example.com";
+        $actual = $this->target->checkUnique($adminUser);
+        $this->assertFalse($actual);
     }
 
     /**
@@ -54,7 +62,8 @@ class AdminUserTest extends TestCase
      */
     public function test_管理者情報が存在しない場合例外が発生すること()
     {
-
+        $this->expectException(NotFoundException::class);
+        $this->target->findById(0);
     }
 
     /**
@@ -64,6 +73,17 @@ class AdminUserTest extends TestCase
      */
     public function test_管理者情報の取得処理の検証()
     {
-
+        $adminUser = new AdminUser();
+        $adminUser->id = 1;
+        $adminUser->name = '管理者A';
+        $adminUser->username = 'admin@example.com';
+        $adminUser->password = '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi';
+        $adminUser->created_at = '2022-07-01 10:00:00';
+        $adminUser->updated_at = '2022-07-01 10:00:00';
+        $adminUser->avatar = '';
+        $adminUser->remember_token = '';
+        $expectd = $adminUser->toArray();
+        $actual = $this->target->findById(1)->toArray();
+        $this->assertEquals($expectd, $actual);
     }
 }

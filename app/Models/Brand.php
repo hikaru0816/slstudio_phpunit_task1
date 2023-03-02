@@ -89,7 +89,7 @@ class Brand extends Model
      */
     public function findById($id)
     {
-        if (!$this->exists($id)) {
+        if ($this->exists($id)) {
             throw new NotFoundException($id, $this->getTable());
         }
         return Brand::find($id);
@@ -150,7 +150,7 @@ class Brand extends Model
      */
     public function exists($id)
     {
-        if (Brand::whereId($id)->count() == 0) {
+        if (Brand::whereId($id)->count() == 1) {
             return false;
         }
         return true;
